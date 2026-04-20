@@ -5,10 +5,11 @@ vim.pack.add({
     { src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
     { src = "https://github.com/folke/tokyonight.nvim"},
     {
-	src = "https://github.com/nvim-treesitter/nvim-treesitter",
-	checkout = "master",
-	build = ":TSUpdate",
-	lazy = false,
+      src = "https://github.com/nvim-treesitter/nvim-treesitter",
+      version = "main",
+      build = function()
+        vim.cmd('TSUpdate')
+      end,
     },
     { src = 'https://github.com/vieitesss/miniharp.nvim' },
     { src = "https://github.com/ibhagwan/fzf-lua" },
@@ -93,10 +94,7 @@ require("blink.cmp").setup({
     sources = { default = { "lsp" } }
 })
 
-
-require('nvim-treesitter.configs').setup({
-  highlight = { enable = true },
-  ensure_installed = {
+local treesitter_languages = {
     "bash",
     "go",
     "lua",
@@ -105,8 +103,23 @@ require('nvim-treesitter.configs').setup({
     "javascript",
     "rust",
     "yaml",
-  },
+    "markdown",
+    "markdown_inline",
+}
+
+local treesitter = require('nvim-treesitter')
+treesitter.setup({
+    install_dir = vim.fn.stdpath('data') .. '/site',
 })
+treesitter.install(treesitter_languages)
+
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = '*',
+    callback = function(args)
+        pcall(vim.treesitter.start, args.buf)
+    end,
+})
+
 
 require('miniharp').setup({
   autoload = true, -- load marks for this cwd on startup (default: true)
